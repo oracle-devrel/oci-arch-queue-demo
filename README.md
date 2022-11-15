@@ -5,22 +5,92 @@
 ## THIS IS A NEW, BLANK REPO THAT IS NOT READY FOR USE YET.  PLEASE CHECK BACK SOON!
 
 ## Introduction
-MISSING
+This repository has been built to provide an illustration of using OCI Queue.
+
+The single file app provides code to support the following OCI Queue operations through the OCI APIs & SDK:
+
+- Creating an OCI Queue
+- Send messages to an OCI Queue.
+- Read messages from an OCI Queue.
+- Delete OCI Queues.
+- List queues in a compartment and inspect a queue's size.
+
+It has been built with the following points in mind -
+
+- Run as a single file Java application - thus not requiring the build tooling, but code can be borrowed/refactored into another Java application.
+- Run as a Groovy solution (single file app or as part of the custom plugins to provide a richer set of options for sending messages using the open-source [LogGenerator](https://github.com/mp3monster/LogGenerator) project, which can use message log files to define message payloads (that can be modified during (re)play). The tool can be used to play messages in any text-based format. This does impose certain methods to be created.
+- Leverages the OCI Java SDK
+- Accommodate the possibility of future improvements so that OCI queue clients in other languages can be built and included. such as Python or Go for example.
+
+
 
 ## Getting Started
-MISSING
+
+To run the application as a single file Java application (the simplest deployment model). The prerequisites described are needed. Other than suitable user credentials and privileges, nothing else is needed.  The application can be run from the command line with the command (once the groovy file has its extension changed to .java).
+
+`java -source XYZ.java`
+
+To make execution really simple, we have provided a shell script (.bat and .sh for Windows and Linux, respectively) which sets up the environment variables. By default, this will execute as a message generator (send). But the other operations can be requested by adding the action name at the end of the command.   The available actions are:
+
+| Parameter   | Behavior                                                     |
+| ----------- | ------------------------------------------------------------ |
+| send        | This gets the application to run as a message provider pushing messages onto a queue |
+| consume     | This starts the application as a message consumer reading and removing the messages. Each consumed message is displayed on the console and, subject to configuration, will return the receipt. |
+| delete-ocid | The application will attempt to delete the queue OCID provided in the configuration file. |
+| delete      | The application will attempt to delete the first queue it finds using the Queue name provided in the configuration file. |
+| list        | This will get the application to list all the queues within the compartment specified. |
+
+Using the provided script means we can run with Groovy  or Java using the command:
+
+`standalone-queue.bat groovy consume`
+
+or
+
+`standalone-queue.bat java consume`
+
+As the script passes the configuration values using environment variables - the script also accepts a single parameter of `reset` which will trigger the script to clear all the environment variables.
 
 ### Prerequisites
-MISSING
+
+The following resources are required to run this application:
+
+- Java 11 or later (to run as a single file Java application), Java 8 or later to run as Groovy (solution - as intended for LogGenerator).
+- Java  OCI SDK
+- An OCI.properties file configured with credentials allowing the user to manage queues in a compartment.
+- Environment variables set up to direct the app's behavior. Parameters are detailed below.
+
+#### Environment Variables - Configuration
+
+| Variable Name      | Variable Description                                         | Value                                 |
+| ------------------ | ------------------------------------------------------------ | ------------------------------------- |
+| CLASSPATH          | This needs to include the location of the SDK jars, including the 3rd party jars it depends upon. If the OCI SDK download was unpacked into the current directory this would look like the value provided | ./oci/lib/*;./oci/third-party/lib/*;. |
+| QUEUENAME          | The display name to use with the Queue when created. Creation only happens if no QueueOCID is provided.  When running as a consumer, if this is provided without the OCID, then the 1st occurrence of a queue with this name will be used. | myTest                                |
+| QUEUEOCID          | The OCID for an existing Queue to be used. In the send mode, if this is provided, then the queue isn't created. We simply connect to this queue. | ocid1.queue.oc1.iad.aaaa.....bbbbb    |
+| OCICONFIGFILE      | The location of the properties file that can be used by the SDK to authenticate with OCI. | oci.properties                        |
+| REGION             | The region in which the queue exists using the official region name e.g. us-ashburn-1 | us-ashburn-1                          |
+| QUEUECOMPARTMENTID | The OCID for the compartment in which the queue operates.    | ocid1.queue.oc1.iad.aaaa.....bbbbb    |
+| REGION             | The name of the region being used for the querues. Needs to be set to ensure we talk to the correct region | us-ashburn-1 |
+| VERBOSE            | This controls how much information is displayed on the console - if you're using the application to help understand how things work then we recommend having this set to true. any other value will switch off the console logging. | true                                  |
+| JSONFMT            | Tells the application to generate its messages using a JSON format. If not set to true then the message is simply plaintext | true                                  |
+| MAXGETS                    | The number of times the application will looop through and try to consume messages. If not set then the loop will run infinitely | 10 |
+|POLLDURATIONSECS | The queue read can operate with long polling to retrieve messages. This value defines how long the poll session can wait for in seconds before returning. If unset then the API will call retrieve what is immediately available and return. | 10 |
+|INTERREADELAYSECS | This imposes a delay between message read API calls. If unset, then the read logic will immediately poll OCI Queue again. | 5 |
+|DELETEDURATIONSECS | To demonstrate the ability to change the visibility control of a message. This value when set will be used for messages being read. If set the the read process will also pause this long before invoking the deletion command as well. If not set then the visibility setting is not amended on an message. | 20 |
+|DLQCOUNT | Provides a value for the queue creation for the Dead Letter queue size. If not set then no DLQ will be set. | 100 |
+|RETENTIONSECONDS | The time in seconds that will be used to tell OCI Queue how long a message should be retained before deleting the message. A default value is applied if this isn't set | 2400 |
+
+
+
 
 ## Notes/Issues
+
 MISSING
 
 ## URLs
 * Nothing at this time
 
 ## Contributing
-This project is open source.  Please submit your contributions by forking this repository and submitting a pull request!  Oracle appreciates any contributions that are made by the open source community.
+This project is open source.  Please submit your contributions by forking this repository and submitting a pull request!  Oracle appreciates any contributions that are made by the open-source community.
 
 ## License
 Copyright (c) 2022 Oracle and/or its affiliates.
