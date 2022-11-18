@@ -67,7 +67,6 @@ The following resources are required to run this application:
 | QUEUENAME          | The display name to use with the Queue when created. Creation only happens if no QueueOCID is provided.  When running as a consumer, if this is provided without the OCID, then the 1st occurrence of a queue with this name will be used. | myTest                                |
 | QUEUEOCID          | The OCID for an existing Queue to be used. In the send mode, if this is provided, then the queue isn't created. We simply connect to this queue. | ocid1.queue.oc1.iad.aaaa.....bbbbb    |
 | OCICONFIGFILE      | The location of the properties file that can be used by the SDK to authenticate with OCI. | oci.properties                        |
-| REGION             | The region in which the queue exists using the official region name e.g. us-ashburn-1 | us-ashburn-1                          |
 | QUEUECOMPARTMENTID | The OCID for the compartment in which the queue operates.    | ocid1.queue.oc1.iad.aaaa.....bbbbb    |
 | REGION             | The name of the region being used for the querues. Needs to be set to ensure we talk to the correct region | us-ashburn-1 |
 | VERBOSE            | This controls how much information is displayed on the console - if you're using the application to help understand how things work, then we recommend having this set to true. any other value will switch off the console logging. | true                                  |
@@ -78,6 +77,8 @@ The following resources are required to run this application:
 |DELETEDURATIONSECS | To demonstrate the ability to change the visibility control of a message. This value, when set, will be used for messages being read. If set, the reading process will also pause this long before invoking the deletion command as well. If not set, then the visibility setting is not amended on a message. | 20 |
 |DLQCOUNT | Provides a value for the queue creation for the Dead Letter queue size. If not set, then no DLQ will be set. | 100 |
 |RETENTIONSECONDS | The time in seconds that will be used to tell OCI Queue how long a message should be retained before deleting the message. A default value is applied if this isn't set | 2400 |
+| BATCHSIZE                       | This sets the number of events to send to OCI at a time. If unset, then each log event is individually sent to OCI | 1 |
+
 
 
 
