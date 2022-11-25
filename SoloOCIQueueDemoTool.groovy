@@ -890,11 +890,11 @@ static void readQueue (SoloOCIQueueDemoTool queue, Properties props)
     {
       displayInfo(queue, props);
     }
-    else if (action.equalsIgnoreCase("HELP"))
+    else if (action.equalsIgnoreCase(ACTION_HELP))
     {
       queue.verbose = true;
       log ("Action " + action + " not understood");
-      log ("Options are:" + " | " + ACTION_SEND_NEW + " | " + ACTION_DELETE_OCID + " | " 
+      log ("Options are:" + ACTION_SEND_NEW + " | " + ACTION_DELETE_OCID + " | " 
             + ACTION_LIST + " | " + ACTION_CONSUME + " | " + ACTION_INFO);
     }
 
