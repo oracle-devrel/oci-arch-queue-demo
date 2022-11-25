@@ -91,6 +91,7 @@ public class SoloOCIQueueDemoTool
   private static final String ACTION_SEND_NEW = "send-new";
   private static final String ACTION_LIST = "list";
   private static final String ACTION_INFO = "info";
+  private static final String ACTION_HELP = "help";
   private static final String ACTION_CONSUME = "consume";
   private static final String ACTION_DELETE = "delete";
   private static final String ACTION_DELETE_OCID = "delete-ocid";
@@ -633,7 +634,7 @@ static void extendInvisibility (SoloOCIQueueDemoTool queue, String receipt, int 
 }
 
 /*
- * Messages are deleted once a receipt is returned back to the queue.  Here we're responding with a bulk delete
+ * To delete a message we need to supply the receipt.  Here we're responding with a bulk delete
  */
 static void deleteMessages (SoloOCIQueueDemoTool queue, List<String> receipts)
 {
@@ -652,6 +653,8 @@ static void deleteMessages (SoloOCIQueueDemoTool queue, List<String> receipts)
 
   String errors = batchResponse.getDeleteMessagesResult().getServerFailures().toString();  
 
+  // the returned value is a string representation of a number of errors that occurred during deletion
+  // to be defensive - ensure we have a non null value back
   if ((errors != null) && (errors.length() > 0) && (!errors.equals("0")))
   {
     log ("Errors deleting messages:" + errors);
@@ -887,7 +890,7 @@ static void readQueue (SoloOCIQueueDemoTool queue, Properties props)
     {
       displayInfo(queue, props);
     }
-    else
+    else if (action.equalsIgnoreCase("HELP"))
     {
       queue.verbose = true;
       log ("Action " + action + " not understood");
