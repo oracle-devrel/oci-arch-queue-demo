@@ -31,3 +31,12 @@ Temporary Items
 .crt
 .csr
 .pem
+oci/lib/
+
+oci/third-party/
+
+backups/
+
+oci.properties
+
+update.bat
