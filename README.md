@@ -24,7 +24,7 @@ It has been built with the following points in mind -
 
 ## Getting Started
 
-To run the application as a single file Java application (the simplest deployment model). The prerequisites described are needed. Other than suitable user credentials and privileges, nothing else is needed.  The application can be run from the command line with the command (once the groovy file has its extension changed to .java).
+To run the application as a single file Java application (the simplest deployment model). The [prerequisites](#Prerequisites) described below are needed. Other than suitable user credentials and privileges, nothing else is needed.  The application can be run from the command line with the command (once the groovy file has its extension changed to .java).
 
 `java -source XYZ.java`
 
@@ -35,7 +35,7 @@ To make execution really simple, we have provided a shell script (.bat and .sh f
 | send        | This gets the application to run as a message provider pushing messages onto a queue. If the OCID is provided, then that is used otherwise, a new queue is created. |
 | send-new    | Irrespective of whether an OCID for a queue is provided, a new queue is created. |
 | consume     | This starts the application as a message consumer reading and removing the messages. Each consumed message is displayed on the console and, subject to configuration, will return the receipt. |
-| delete-ocid | The application will attempt to delete the queue OCID provided in the configuration file. An additional parameter can be accepted which will override the OCID provided in the environment variable settings. |
+| delete-ocid | The application will attempt to delete the queue OCID provided in the configuration file. An additional parameter can be accepted, overriding the OCID provided in the environment variable settings. |
 | delete      | The application will attempt to delete the first queue it finds using the Queue name provided in the configuration file. |
 | list        | This will get the application to list all the queues within the compartment specified. |
 | info        | This will provide information for the specific queue         |
@@ -48,16 +48,17 @@ or
 
 `standalone-queue.bat java consume`
 
-As the script passes the configuration values using environment variables - the script also accepts a single parameter of `reset,`which will trigger the script to clear all the environment variables.
+As the script passes the configuration values using environment variables - the script also accepts a single parameter of `reset`, which will trigger the script to clear all the environment variables.
 
 ### Prerequisites
 
 The following resources are required to run this application:
 
-- Java 11 or later (to run as a single file Java application), Java 8 or later to run as Groovy (solution - as intended for LogGenerator).
-- Java  OCI SDK
-- An OCI.properties file configured with credentials allowing the user to manage queues in a compartment.
-- Environment variables set up to direct the app's behavior. Parameters are detailed below.
+- Java 11 or later (to run as a single file Java application), Java 8 or later to run as Groovy (solution - as intended for [LogGenerator](https://github.com/mp3monster/LogGenerator)).
+- Java  OCI SDK needs to be downloaded - we have assumed that the [Full SDK download](https://github.com/oracle/oci-java-sdk/releases/download/v2.51.0/oci-java-sdk-2.51.0.zip) is unzipped into a subfolder called `oci`  (therefore, the dependent jars should be in `./oci/lib`). If you want to use a different location, the script's classpath statement needs to be amended.
+- An `OCI.properties` file configured with credentials allowing the user to manage queues in a compartment.
+- Environment variables are set up to direct the app's behavior. Parameters are detailed below.
+- For Linux deployments, the shell script needs to be made executable (`chmod a+x *.sh`).
 
 #### Environment Variables - Configuration
 
@@ -91,7 +92,7 @@ None
 * [OCI Queue Product Page](https://www.oracle.com/cloud/queue/)
 * [Java 8](https://www.oracle.com/uk/java/technologies/javase/javase8-archive-downloads.html) , [Java 11](https://www.oracle.com/uk/java/technologies/javase/jdk11-archive-downloads.html)
 * [Apache Groovy](https://groovy-lang.org/)
-* [OCI Java SDK](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/javasdk.htm)
+* [OCI Java SDK](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/javasdk.htm) guidance and guidance for JavaSDK on the [OCI Cloud Shell](https://docs.oracle.com/en-us/iaas/Content/API/Concepts/cloudshellquickstart_java.htm#Cloud_Shell_Quick_Start_SDK_for_Java) - for example [this download](https://github.com/oracle/oci-java-sdk/releases/download/v2.51.0/oci-java-sdk-2.51.0.zip).
 * [LogSimulator](https://github.com/mp3monster/LogGenerator) aka [LogGenerator](https://github.com/mp3monster/LogGenerator)
 
 ## Contributing

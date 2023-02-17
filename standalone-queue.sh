@@ -1,4 +1,5 @@
-export CLASSPATH=./oci/lib/*;./oci/third-party/lib/*;.
+#!/bin/bash
+export CLASSPATH= $JAVA_HOME/lib/*.jar;./oci/lib/*;./oci/third-party/lib/*;./*
 export VERBOSE=true
 export QUEUENAME=test
 export JSONFMT=true
@@ -12,10 +13,12 @@ export QUEUECOMPARTMENTID=ocid1.compartment.oc1..aaaabbbbccccddddeeeeffff1111222
 # export DLQCOUNT=0
 export RETENTIONSECONDS=2400
 
-echo %1
+echo $1
 
-if [$1="reset"] then
-# reset all the environment variables
+if [ $1 = "reset" ] 
+then
+  # reset all the environment variables
+  echo 'resetting env vars'
   export CLASSPATH=
   export VERBOSE=
   export QUEUENAME=
@@ -28,16 +31,17 @@ if [$1="reset"] then
   export DELETEDURATIONSECS=
   export DLQCOUNT=
   export RETENTIONSECONDS=
-fi
 
-if [$1="groovy"] then
+elif [ $1 = "groovy" ] 
+then
   echo 'run as groovy'
   groovy ./SoloOCIQueueDemoTool.groovy $2
-fi
 
-if [$1="java"] then
-echo 'run as Java'
+
+elif [ $1 = "java" ] 
+then
+  echo 'run as Java'
   cp ./SoloOCIQueueDemoTool.groovy ./SoloOCIQueueDemoTool.java
-  java ./SoloOCIQueueDemoTool.java %2
-  del ./SoloOCIQueueDemoTool.java
+  java SoloOCIQueueDemoTool.java $2
+  rm ./SoloOCIQueueDemoTool.java
 fi
