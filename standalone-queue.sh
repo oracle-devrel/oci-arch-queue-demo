@@ -1,5 +1,5 @@
 #!/bin/bash
-export CLASSPATH= $JAVA_HOME/lib/*.jar;./oci/lib/*;./oci/third-party/lib/*;./vertx/*;./lombok/*;./*
+export CLASSPATH= $JAVA_HOME/lib/*.jar:./oci/lib/*:./oci/third-party/lib/*:./vertx/*:./lombok/*:./*
 export VERBOSE=true
 export QUEUENAME=test
 export JSONFMT=true
