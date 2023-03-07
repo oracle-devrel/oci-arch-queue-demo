@@ -26,19 +26,25 @@ import java.io.IOException;
  */
 public class SoloOCIQueueStompDemoTool {
     private static final String QUEUEOCID = "QUEUEOCID";
-    private static final String HOSTNAME = "DP_HOSTNAME";
     private static final String REGION = "REGION";
     private static final String ISVERBOSE = "VERBOSE";
     private static final String AUTHTOKEN = "AUTHTOKEN";
+    private static final String POSTSENDDELAYSECS = "POSTSENDDELAYSECS";
+    private static final String POLLDURATIONSECS = "POLLDURATIONSECS";
     private static final String UNAME = "USERNAME";
-    private static final String LOGIN = "LOGIN";
     private static final String TENANCY = "TENANCY";
-    private static final String DTG_FORMAT = "HH:mm:ss";
+    private static final String MAXSENDS="TOTALSEND";
+    private static final String DTG_FORMAT = "HH:mm:ss.SSS";
     private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern(DTG_FORMAT);
 
     private static final String ACTION_SEND = "send";
     private static final String ACTION_CONSUME = "consume";
     private static final String ACTION_TEST = "test";
+    private static final String ACTION_HELP = "help";
+
+    // derived internal values
+    private static final String LOGIN = "LOGIN";
+    private static final String HOSTNAME = "DP_HOSTNAME";
 
     private static String action = null;
     private static Properties props = new Properties();
@@ -47,7 +53,7 @@ public class SoloOCIQueueStompDemoTool {
 
     //------------
 
-    private static String queueId = null;
+    //private static String queueId = null;
     private static StompClient stompClient = null;
     private StompClientConnection stompClientConnection = null;
     private Vertx vertx = null;
@@ -124,27 +130,54 @@ public class SoloOCIQueueStompDemoTool {
                 break;
 
             case ACTION_SEND:
-                getConnection(stompClient)
-                .thenCompose(conn -> new SoloOCIQueueStompDemoTool(conn).execSend())
-                .whenComplete((unused, error) -> {
-                        // Error messages are already logged in respective futures
-                        stompClient.close();
-                    })
-                .join();
+                int sendCount = Integer.parseInt(props.getProperty(MAXSENDS, "0"));
+                if (sendCount > 0)
+                {
+                    getConnection(stompClient)
+                    .thenCompose(conn -> new SoloOCIQueueStompDemoTool(conn).execSendMultiple(sendCount))
+                    .whenComplete((unused, error) -> {
+                            // Error messages are already logged in respective futures
+                            stompClient.close();
+                        })
+                    .join();
+                }
+                else
+                {
+                    getConnection(stompClient)
+                    .thenCompose(conn -> new SoloOCIQueueStompDemoTool(conn).execSend())
+                    .whenComplete((unused, error) -> {
+                            // Error messages are already logged in respective futures
+                            stompClient.close();
+                        })
+                    .join();
+                }
                 break;
 
             case ACTION_CONSUME:
-                getConnection(stompClient)
-                .thenCompose(conn -> new SoloOCIQueueStompDemoTool(conn).execConsume())
-                .whenComplete((unused, error) -> {
-                        // Error messages are already logged in respective futures
-                        stompClient.close();
-                    })
-                .join();
+                int polldelay = Integer.parseInt(props.getProperty(POLLDURATIONSECS));
+                int maxCycles = Integer.parseInt(props.getProperty(MAXSENDS));
+                boolean completed = false;
+                while (maxCycles > 0)
+                {
+                    getConnection(stompClient)
+                    .thenCompose(conn -> new SoloOCIQueueStompDemoTool(conn).execConsume())
+                    .whenComplete((unused, error) -> {
+                            // Error messages are already logged in respective futures
+                            stompClient.close();
+                        })
+                    .join();
+                    maxCycles=maxCycles--;
+                    takeNap(polldelay);
+
+                }
+            
                 break;
+            
+            case ACTION_HELP:
+                displayCLI();
+                break;
+            
             }
-            
-            
         } finally {
             // close the vertx instance.
             vertx.close();
@@ -174,7 +207,7 @@ public class SoloOCIQueueStompDemoTool {
      */
     private CompletableFuture<Void> unsubscribe() {
         CompletableFuture<Void> future = new CompletableFuture<>();
-        stompClientConnection.unsubscribe(queueId,
+        stompClientConnection.unsubscribe(props.getProperty(QUEUEOCID),
             ar -> {
                 if (ar.succeeded()) {
                     log("RECEIPT for UNSUBSCRIBE frame received!");
@@ -218,7 +251,7 @@ public class SoloOCIQueueStompDemoTool {
         CompletableFuture<Void> future = new CompletableFuture<>();
         final Map<String, String> queueSubscribeHeaders = new HashMap<>();
         queueSubscribeHeaders.put(Frame.ACK, "client-individual");
-        stompClientConnection.subscribe(queueId,
+        stompClientConnection.subscribe(props.getProperty(QUEUEOCID),
             queueSubscribeHeaders,
             this::receiveMessage,
             ar -> {
@@ -234,14 +267,17 @@ public class SoloOCIQueueStompDemoTool {
         return future;
     }
     
+    private CompletableFuture<Void> sendMessage() {
+        return sendMessage(0);
+    }
     /*
      * This sends the message to the queue. The queue is OCID of the destination
      * queue.
      */
-    private CompletableFuture<Void> sendMessage() {
+    private CompletableFuture<Void> sendMessage(int msgNo) {
         CompletableFuture<Void> future = new CompletableFuture<>();
-        String content = createMessage(1);
-        stompClientConnection.send(queueId,
+        String content = createMessage(msgNo);
+        stompClientConnection.send(props.getProperty(QUEUEOCID),
             Buffer.buffer(content),
             ar -> {
                 if (ar.succeeded()) {
@@ -252,7 +288,7 @@ public class SoloOCIQueueStompDemoTool {
                     future.completeExceptionally(ar.cause());
                 }
             });
-        log("Send MESSAGE");
+        log("Send MESSAGE - " + content);
         return future;
     }
     
@@ -295,10 +331,26 @@ public class SoloOCIQueueStompDemoTool {
         .thenCompose(unused -> disconnect());
     }
 
-    private CompletableFuture<Void> execSend() {
+    private CompletableFuture<Void> execSendMultiple(int noMessages) {
+        int napTime = Integer.parseInt(props.getProperty(POSTSENDDELAYSECS));
+        for (int ctr=0; ctr < noMessages-1; ctr++)
+        {
+            sendMessage(ctr).whenComplete((unused, error) -> {
+                    // Error messages are already logged in respective futures
+                }).thenCompose(unused -> futureForAck);
+            takeNap(napTime);
+        }
+        return sendMessage(noMessages)
+        //.thenCompose(unused -> futureForAck)
+        .thenCompose(unused -> disconnect());
+    }
+
+
+    private CompletableFuture<Void> execSend() {        
         return sendMessage()
         //.thenCompose(unused -> futureForAck)
         .thenCompose(unused -> disconnect());
+
     }
 
     private CompletableFuture<Void> execConsume() {
@@ -308,8 +360,9 @@ public class SoloOCIQueueStompDemoTool {
         .thenCompose(unused -> disconnect());
     }
 
-    //-----------
-
+    /*
+     * Build a message to be sent
+     */
     private static String createMessage (int msgCtr)
     {
         LocalDateTime now = LocalDateTime.now();
@@ -322,9 +375,13 @@ public class SoloOCIQueueStompDemoTool {
      * Simple utility function - trying to set a property with a null value triggers an exception - rather than wrapping all the code
      * with the same If conditions - we've parameterized it.
      */
-    static void setPropertyFromVar(String propname, String envName, Properties props)
+    static void setPropertyFromVar(String propname, String envName, String defaultVal, Properties props)
     {
         String envVal = System.getenv(envName);
+        if ((envVal == null) && (defaultVal != null))
+        {
+            envVal = defaultVal;
+        }
         if (envVal != null)
         {
             props.setProperty(propname, envVal);
@@ -341,17 +398,43 @@ public class SoloOCIQueueStompDemoTool {
         if (verbose) {System.out.println (msg);}
     }
 
+    /*
+     * to keep things from screaming through too quickly - we want to slow the main thread
+     * we can use this method to slow things down
+     */
+    private static void takeNap(int napTime)
+    {
+        try
+        {
+            if (napTime > 0)
+            {
+                Thread.sleep (napTime*1000);
+            }
+        }
+        catch (Exception wokenUp)
+        {
+            log ("disturbed sleep");
+        }        
+    }
+
+    /*
+     * Initialise all the control values and if there are anymissing default of kill the process
+     */
     private static void configure (String[] args)
     {
-        setPropertyFromVar (REGION, REGION, props);
-        setPropertyFromVar (TENANCY, TENANCY, props);
-        setPropertyFromVar (AUTHTOKEN, AUTHTOKEN, props);
-        setPropertyFromVar (UNAME, UNAME, props);
-        setPropertyFromVar (QUEUEOCID, QUEUEOCID, props);
-        setPropertyFromVar (ISVERBOSE, ISVERBOSE, props);
+        setPropertyFromVar (REGION, REGION, null, props);
+        setPropertyFromVar (TENANCY, TENANCY, null, props);
+        setPropertyFromVar (AUTHTOKEN, AUTHTOKEN, null, props);
+        setPropertyFromVar (UNAME, UNAME, null, props);
+        setPropertyFromVar (QUEUEOCID, QUEUEOCID, null, props);
+        setPropertyFromVar (ISVERBOSE, ISVERBOSE, "TRUE", props);
+        setPropertyFromVar(MAXSENDS, MAXSENDS, "0", props);
+        setPropertyFromVar(POSTSENDDELAYSECS,POSTSENDDELAYSECS, "0", props);
+        setPropertyFromVar(POLLDURATIONSECS,POLLDURATIONSECS, "3", props);
+
         verbose =((System.getenv(ISVERBOSE) == null) || (System.getenv(ISVERBOSE).trim().equalsIgnoreCase("true")));
         
-        queueId = props.getProperty(QUEUEOCID);
+        //queueId = props.getProperty(QUEUEOCID);
                 
         if (props.getProperty(TENANCY) == null)
         {
@@ -417,11 +500,13 @@ public class SoloOCIQueueStompDemoTool {
         return token;
     }
 
+    /*
+     * send to console the details of the command options available
+     */
     private static void displayCLI ()
     {
         System.out.println ("Options are: " + ACTION_SEND + " | " + ACTION_CONSUME + " | " + ACTION_TEST);
     }
 
-    //--------------------
     
 }
