@@ -1,3 +1,6 @@
+// Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
+// Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.stomp.Frame;
@@ -51,9 +54,6 @@ public class SoloOCIQueueStompDemoTool {
 
     private static boolean verbose = true;
 
-    //------------
-
-    //private static String queueId = null;
     private static StompClient stompClient = null;
     private StompClientConnection stompClientConnection = null;
     private Vertx vertx = null;
@@ -77,15 +77,26 @@ public class SoloOCIQueueStompDemoTool {
     }
 
 
+    /*
+     * constructor - just log creation of the object
+     */
     public SoloOCIQueueStompDemoTool () {
         log ("SoloOCIQueueStompDemoTool instance created");
     }
-
+    /*
+     * constructor - log creation of the object and store the
+     * connection object
+     */
     public SoloOCIQueueStompDemoTool (StompClientConnection conn) {
-        log ("SoloOCIQueueStompDemoTool instance created");
+        log ("SoloOCIQueueStompDemoTool instance created with connection object");
         stompClientConnection = conn;
     }
 
+    /*
+     * executes the app logic - driven by the env properties 
+     * and CLI params received. All the actual core queue logic is
+     * delegated to internal methods
+     */
     public static void main(String[] args) {
         configure (args);
         // creates the vertx instance.
@@ -267,6 +278,10 @@ public class SoloOCIQueueStompDemoTool {
         return future;
     }
     
+    /*
+     * chains the call down to a common version of send message
+     * this means we can send a single message or multiple
+     */
     private CompletableFuture<Void> sendMessage() {
         return sendMessage(0);
     }
@@ -316,9 +331,6 @@ public class SoloOCIQueueStompDemoTool {
         log("ACK frame sent");
     }
 
-    //----------------------
-    //----------------------
-
     /**
      * Runs the test to chain the following:
      * subscribe -> sendMessage -> getmessage -> deletemessage -> unsubscribe -> disconnect.
@@ -331,6 +343,11 @@ public class SoloOCIQueueStompDemoTool {
         .thenCompose(unused -> disconnect());
     }
 
+    /*
+     * This drives the transmission of one or more messages
+     * when multiple messages are to be sent then the thread is put to sleep
+     * This means we don't make the logic run and excessive speed
+     */
     private CompletableFuture<Void> execSendMultiple(int noMessages) {
         int napTime = Integer.parseInt(props.getProperty(POSTSENDDELAYSECS));
         for (int ctr=0; ctr < noMessages-1; ctr++)
@@ -345,7 +362,9 @@ public class SoloOCIQueueStompDemoTool {
         .thenCompose(unused -> disconnect());
     }
 
-
+    /*
+     * Drives the processing with a single message
+     */
     private CompletableFuture<Void> execSend() {        
         return sendMessage()
         //.thenCompose(unused -> futureForAck)
@@ -353,6 +372,9 @@ public class SoloOCIQueueStompDemoTool {
 
     }
 
+    /*
+     * Runs the app in its consumer role. So we subscribe to receive messages
+     */
     private CompletableFuture<Void> execConsume() {
         return subscribe()
         .thenCompose(unused -> futureForAck)
@@ -433,9 +455,7 @@ public class SoloOCIQueueStompDemoTool {
         setPropertyFromVar(POLLDURATIONSECS,POLLDURATIONSECS, "3", props);
 
         verbose =((System.getenv(ISVERBOSE) == null) || (System.getenv(ISVERBOSE).trim().equalsIgnoreCase("true")));
-        
-        //queueId = props.getProperty(QUEUEOCID);
-                
+                        
         if (props.getProperty(TENANCY) == null)
         {
             log("No tenancy set");
