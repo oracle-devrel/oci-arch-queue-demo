@@ -1,5 +1,8 @@
+REM Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
+REM Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+
 @echo off
-set CLASSPATH=./oci/lib/*;./oci/third-party/lib/*;./vertx/*;./lombok/*;.
+set CLASSPATH=./oci/lib/*;./oci/third-party/lib/*;./vertx/*;.
 set VERBOSE=true
 set QUEUENAME=demo-02-02-23
 set JSONFMT=true
@@ -8,13 +11,15 @@ set OCICONFIGFILE=oci.properties
 set REGION=us-ashburn-1
 set QUEUECOMPARTMENTID=ocid1.queue.oc1.iad.aaaabbbbccccddddeeeeffff11112222233334444555566667777ababxxx
 REM set MAXGETS=1
+set POSTSENDDELAYSECS=5
 REM set DELETEDURATIONSECS=20
 set POLLDURATIONSECS=3
+REM set TOTALSEND=10
 set INTERREADELAYSECS=4
 set DLQCOUNT=7
 set RETENTIONSECONDS=2400
 set ALLSTATES=FALSE
-set TENANCY=ociobenablement
+set TENANCY=myTenancy
 set USERNAME=joe.blogs@oracle.com
 set AUTHTOKEN=
 
@@ -41,6 +46,7 @@ set RETENTIONSECONDS=
 set TENANCY=
 set USERNAME=
 set AUTHTOKEN=
+set POLLDURATIONSECS=
 goto :eof
 
 :groovy

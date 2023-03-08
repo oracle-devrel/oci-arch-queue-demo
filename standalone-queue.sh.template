@@ -1,5 +1,8 @@
 #!/bin/bash
-export CLASSPATH= $JAVA_HOME/lib/*.jar:./oci/lib/*:./oci/third-party/lib/*:./vertx/*:./lombok/*:./*
+# Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+
+export CLASSPATH= $JAVA_HOME/lib/*.jar:./oci/lib/*:./oci/third-party/lib/*:./vertx/*:./*
 export VERBOSE=true
 export QUEUENAME=test
 export JSONFMT=true
@@ -9,11 +12,13 @@ export REGION=us-ashburn-1
 export QUEUECOMPARTMENTID=ocid1.compartment.oc1..aaaabbbbccccddddeeeeffff11112222233334444555566667777ababxxx
 # export MAXGETS=1
 # export DELETEDURATIONSECS=20
+# export POSTSENDDELAYSECS=5
 # export POLLDURATIONSECS=5
 # export DLQCOUNT=0
+# export TOTALSEND=10
 export RETENTIONSECONDS=2400
 set ALLSTATES=FALSE
-set TENANCY=ociobenablement
+set TENANCY=myTenancy
 set USERNAME=joe.blogs@oracle.com
 set AUTHTOKEN=
 
@@ -38,6 +43,9 @@ then
   export TENANCY=
   export USERNAME=
   export AUTHTOKEN=
+  export TOTALSEND=
+  export POSTSENDDELAYSECS=
+
 
 elif [ $1 = "groovy" ] 
 then
@@ -56,8 +64,7 @@ elif [ $1 = "stomp" ]
 then
   echo 'run stomp'
     cp ./SoloOCIQueueStompDemoTool.groovy ./SoloOCIQueueStompDemoTool.java
-    groovy ./SoloOCIQueueStompDemoTool.groovy $2
-        groovy ./SoloOCIQueueStompDemoTool.groovy $2
+    java SoloOCIQueueDemoTool.java %2
     rm ./SoloOCIQueueStompDemoTool.java
 
 fi

@@ -1,3 +1,5 @@
+// Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
+// Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 import com.oracle.bmc.ConfigFileReader;
 import com.oracle.bmc.auth.AuthenticationDetailsProvider;
@@ -50,9 +52,7 @@ import com.oracle.bmc.queue.model.WorkRequestResource;
 import com.oracle.bmc.queue.model.WorkRequest;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Date;
-import java.util.Arrays;
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
 import java.util.Properties;
@@ -88,6 +88,7 @@ public class SoloOCIQueueDemoTool
 
 
     private static final String ACTION_SEND = "send";
+    private static final String ACTION_STOMP_SEND = "stomp-send";
     private static final String ACTION_SEND_NEW = "send-new";
     private static final String ACTION_LIST = "list";
     private static final String ACTION_INFO = "info";
@@ -658,12 +659,12 @@ public class SoloOCIQueueDemoTool
                 .build())
             .build());
         // any issues with sending the receipt - log. A response here should either trigger a transaction rollback or compensating action
-        //String errors = response.getUpdateMessageResult().getClientFailures();
-        //if ((errors != null) && (errors.length() > 0))
-        //{
-        //  log ("Error with requesting a delay in visibility"+ errors + " for " + receipt);
-        log ("visibility delayed " + response.toString());
-        //}
+        String errors = response.getUpdateMessageResult().getClientFailures();
+        if ((errors != null) && (errors.length() > 0))
+        {
+            log ("Error with requesting a delay in visibility"+ errors + " for " + receipt);
+            log ("visibility delayed " + response.toString());
+        }
     }
 
     /*
@@ -702,7 +703,7 @@ public class SoloOCIQueueDemoTool
     /*
      * Wrap up thread sleep logic into 1 declaration with exception handling - makes the
      * rest of the code a little neater and easier to read
-     */
+     */ 
     static void pause (String pauseName, int forSecs)
     {
         try
@@ -713,7 +714,7 @@ public class SoloOCIQueueDemoTool
         catch (Exception err) 
         {
             log(pauseName + " disturbed " + err.getMessage());
-        }
+        }  
 
     }
 
