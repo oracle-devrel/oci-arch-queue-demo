@@ -4,14 +4,14 @@
 
 ## Introduction
 
-This repository has been built to provide code illustrating the use of OCI Queue. To do this we have included two single file applications. They are:
+This repository has been built to provide code illustrating the use of OCI Queue. To do this we have included two single-file applications which can be controlled from a single script. They are:
 
 * *SoloOCIQueueDemoTool* - this makes use of the Java SDK for OCI Java (which ultimately uses REST APIs)
-* *SoloOCIQueueStompDemoTool* - this doesn't use the OCI Java SDK at all but relies upon the Vertx implementation of the STOMP protocol (STOMP being a specialized use of Web Sockets). As a result this application is simpler in what it can do.
+* *SoloOCIQueueStompDemoTool* - this doesn't use the OCI Java SDK at all but relies upon the Vertx implementation of the STOMP protocol (STOMP being a specialized use of Web Sockets). As a result, this application is simpler in what it can do.
 
-Both examples have been configured to work in a similar manner using the same environment property names where there is a commonality in setup. For the details for configuring and controlling the utilities, we have indicated in tables whether it applies to Queue (SoloOCIQueueDemoTool), Stomp (SoloOCIQueueStompDemoTool), or Both (SoloOCIQueueDemoTool and SoloOCIQueueStompDemoTool).
+Both examples have been configured to work in a similar manner using the same environment properties where there is a commonality in setup. For the details for configuring and controlling the utilities, we have indicated in tables whether it applies to Queue (SoloOCIQueueDemoTool), Stomp (SoloOCIQueueStompDemoTool), or Both (SoloOCIQueueDemoTool and SoloOCIQueueStompDemoTool).
 
-Both utilities have a lot in common in terms of implementation, although the SoloOCIQueueStompDemoTool has not been proven to also be usable with the open-source [LogGenerator](https://github.com/mp3monster/LogGenerator) project to date, although its internal structure should support being incorporated into the LogGenerator's  custom plugin framework.
+Both utilities have a lot in common in terms of implementation, although the SoloOCIQueueStompDemoTool has not been proven to also be usable with the open-source [LogGenerator](https://github.com/mp3monster/LogGenerator) project to date.
 
 ## Example Documentation
 
@@ -34,7 +34,7 @@ It has been built with the following points in mind -
 
 #### Executing the demo
 
-Using the provided script means we can run with Groovy  or Java using the command:
+Rename the template script file and adjust the parameters as necessary (see below for more detail). Using the copied script means we can run with Groovy  or Java using the command:
 
 `standalone-queue.bat groovy consume`
 
@@ -48,11 +48,19 @@ As the script passes the configuration values using environment variables - the 
 
 This demonstrates the use of OCI Queue using the [STOMP](https://stomp.github.io/) protocol. in this example, and we're using the [Vertx implementation](https://vertx.io/docs/vertx-stomp/java/). OCI documentation for Queue support for STOMP can be found [here](https://docs.oracle.com/en-us/iaas/Content/queue/messages-stomp.htm).
 
+The Stomp implementation supports running the utility as both sender and consumer for a single message or can be run as the sender or as the consumer.  The Stomp protocol doesn't cover operations for creating and deleting Queues, so these options are not provided with the Stomp option.
 
+#### Executing the demo
+
+Rename the template script file and adjust the parameters as necessary (see below for more detail). Using the renamed script we can start the utility with the command:
+
+`standalone-queue.sh stomp consume`
+
+The script executes the Stomp utility using Java - but this could be modified to be run in its Groovy form.
 
 ## Getting Started
 
-To run the application as a single file Java application (the simplest deployment model). The [prerequisites](#Prerequisites) described below are needed. Other than suitable user credentials and privileges, nothing else is needed.  The application can be run from the command line with the command (once the groovy file has its extension changed to .java for the *SoloOCIQueueDemoTool*).
+To run the application as a single file Java application (the simplest deployment model). The [prerequisites](#Prerequisites) described below are needed. Other than suitable user credentials and privileges, nothing else is needed.  The application can be run from the command line with the command (once the groovy files have their extensions changed to .java).
 
 `java -source XYZ.java`
 
@@ -68,12 +76,13 @@ To make execution really simple, we have provided a shell script (.bat and .sh f
 | list        | This will get the application to list all the queues within the compartment specified. | Queue      |
 | info        | This will provide information for the specific queue         | Queue      |
 | test        | Chains a sequence of connect, subscribe send, consume, unsubscribe calls | Stomp      |
+| reset       | Clears down the environment variables that are set.          | Both       |
 
 ### Prerequisites
 
 Both utilities require the following:
 
-- Environment variables are set up to direct the app's behavior. Parameters are detailed below.
+- Environment variables are set up to direct the app's behavior. The values for these parameters are set up and cleared using the provided script (standalone-queue.[bat|sh].template). Parameters are detailed below. Remove the .template extension and modify the properties as desired.
 - For Linux deployments, the shell script must be made executable (`chmod a+x *.sh`).
 
 #### SoloOCIQueueDemoTool
@@ -89,7 +98,6 @@ The following resources are required to run the Queue demo:
 This has currently only been proven with Java11, although in theory, it should also work with Java8 and as a Groovy solution.
 
 * The Vertx Stomp client needs to be downloaded into the folder ./vertx this can be done with the command *wget https://repo1.maven.org/maven2/io/vertx/vertx-stomp/3.2.1/vertx-stomp-3.2.1.jar*
-* The Lombok library also needs to be downloaded from https://projectlombok.org/download and added to the *./lombok* folder this can be done with the command *wget https://projectlombok.org/downloads/lombok.jar*
 
 
 
@@ -107,6 +115,7 @@ This has currently only been proven with Java11, although in theory, it should a
 | JSONFMT            | Tells the application to generate its messages using a JSON format. If not set to true, then the message is simply plaintext | true                                  | Queue                             |
 | MAXGETS                    | The number of times the application will loop through and try to consume messages. If not set, then the loop will run infinitely | 10 | Queue |
 |POLLDURATIONSECS | The queue read can operate with long polling to retrieve messages. This value defines how long the poll session can wait for in seconds before returning. If unset then the API will call retrieve what is immediately available, and return. | 10 | Queue |
+|POSTSENDDELAYSECS | Controls how long the process will wait between sending messages - expressed in seconds. | 5 | Both |
 |INTERREADELAYSECS | This imposes a delay between message read API calls. If unset, then the read logic will immediately poll OCI Queue again. | 5 | Queue |
 |DELETEDURATIONSECS | To demonstrate the ability to change the visibility control of a message. This value, when set, will be used for messages being read. If set, the reading process will also pause this long before invoking the deletion command as well. If not set, then the visibility setting is not amended on a message. | 20 | Queue |
 |DLQCOUNT | Provides a value for the queue creation for the Dead Letter queue size. If not set, then no DLQ will be set. | 100 | Queue |
@@ -115,6 +124,7 @@ This has currently only been proven with Java11, although in theory, it should a
 | USERNAME | The OCI username to connect with Queue. We need to provide this as a config value as we're not using the SDK configuration file format | joe.blogs@oracle.com | Stomp |
 | AUTHTOKEN | The user token for the user identified. As with the username - it needs to be supplied as an environment variable, as we're not using the SDK configuration file format. As auth tokens can involve characters, that can be an issue for environment variables. If the environment variable is not set, then the code will try to retrieve the token from a file called authtoken.txt which needs to be in the folder where the app is run from | axcljvhcv!3r | Stomp |
 | TENANCY | The name of the tenancy | IamATenant | Stomp |
+| TOTALSEND | Number of messages that can be sent. It also controls how many iterations of connecting and pulling messages from the Queue can be performed. | 5 | Stomp |
 
 Examples of running the script - run the simple Stomp test on Windows with *standalone-queue.bat stomp test* run the Java version of the Queue to send on Linux is *./standalone-queue.sh java send*
 
@@ -123,7 +133,7 @@ Examples of running the script - run the simple Stomp test on Windows with *stan
 ## Notes/Issues
 
 * Stomp implementation has not been tested as part of the LogGenerator.
-* only the Test function has been verified so far
+* With Stomp there is a known issue with authentication which means IDCS-based authentication doesn't currently work. Until this issue is addressed, the identity provided needs to be an IAM credential. Using an IDCS credential will need the prefix *identitycloudservice/* prefix once the issue is resolved. The problem manifests itself by failing authentication.
 
 ## URLs
 * [OCI Queue Product Page](https://www.oracle.com/cloud/queue/)
