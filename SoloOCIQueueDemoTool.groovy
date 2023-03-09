@@ -658,13 +658,7 @@ public class SoloOCIQueueDemoTool
                 .visibilityInSeconds(delayDuration)
                 .build())
             .build());
-        // any issues with sending the receipt - log. A response here should either trigger a transaction rollback or compensating action
-        String errors = response.getUpdateMessageResult().getClientFailures();
-        if ((errors != null) && (errors.length() > 0))
-        {
-            log ("Error with requesting a delay in visibility"+ errors + " for " + receipt);
-            log ("visibility delayed " + response.toString());
-        }
+
     }
 
     /*
